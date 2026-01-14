@@ -1,11 +1,4 @@
-"""
-AI-friendly output formatters.
 
-Formats analysis results for optimal LLM consumption:
-- Structured JSON
-- Markdown with context
-- Token-aware truncation
-"""
 
 import json
 from dataclasses import dataclass
@@ -330,17 +323,7 @@ def format_for_ai(
     format_type: str = "json",
     config: Optional[FormatterConfig] = None
 ) -> str:
-    """
-    Format data for AI consumption.
-    
-    Args:
-        data: Data to format
-        format_type: Output format ("json" or "markdown")
-        config: Formatter configuration
-        
-    Returns:
-        Formatted string
-    """
+
     if format_type == "json":
         formatter = JSONFormatter(config)
     elif format_type == "markdown":

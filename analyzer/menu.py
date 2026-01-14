@@ -1,8 +1,4 @@
-"""
-Interactive CLI menu for the Code Analyzer.
 
-Provides a user-friendly menu interface to access all analyzer features.
-"""
 
 import os
 import sys
@@ -17,6 +13,25 @@ try:
     RICH_AVAILABLE = True
 except ImportError:
     RICH_AVAILABLE = False
+
+# Global RAG pipeline instance (shared across menu options)
+_rag_pipeline = None
+
+def get_rag_pipeline():
+    """Get or create the shared RAG pipeline instance."""
+    global _rag_pipeline
+    if _rag_pipeline is None:
+        from analyzer.rag.pipeline import RAGPipeline
+        from analyzer.rag.config import RAGConfig
+        _rag_pipeline = RAGConfig()
+        _rag_pipeline = RAGPipeline(_rag_pipeline)
+    return _rag_pipeline
+
+def reset_rag_pipeline():
+    """Reset the RAG pipeline (used after clearing index)."""
+    global _rag_pipeline
+    _rag_pipeline = None
+
 
 
 def clear_screen():
@@ -52,6 +67,7 @@ def print_menu():
         ("6", "🔗 Dependency Analysis", "Analyze imports & dependencies"),
         ("7", "🔍 Query Code", "Search code with natural language"),
         ("8", "📝 Generate Summary", "Get AI-friendly code summary"),
+        ("A", "🤖 RAG AI Assistant", "Ask AI questions about your code"),
         ("9", "⚙️  Settings", "Configure analyzer options"),
         ("0", "❌ Exit", "Exit the analyzer"),
     ]
@@ -458,6 +474,321 @@ def generate_summary_menu():
     input("\nPress Enter to continue...")
 
 
+def rag_menu():
+    """Handle RAG AI Assistant menu."""
+    print("\n🤖 RAG AI ASSISTANT")
+    print("-" * 30)
+    print("\nThis feature uses AI to answer questions about your code.")
+    print("It can search semantically and understand code context.")
+    
+    # Check for AI availability
+    import os
+    has_ai = any([
+        os.getenv("GEMINI_API_KEY"),
+        os.getenv("GOOGLE_API_KEY"),
+        os.getenv("OPENAI_API_KEY"),
+        os.getenv("ANTHROPIC_API_KEY"),
+    ])
+    
+    if has_ai:
+        print("\n✅ AI provider detected!")
+    else:
+        print("\n⚠️  No AI API key found. Using demo mode.")
+        print("   Set GEMINI_API_KEY, OPENAI_API_KEY, or ANTHROPIC_API_KEY for real AI.")
+    
+    while True:
+        print("\n🤖 RAG Options:")
+        print("  [1] 📦 Index Codebase - Index a project for AI search")
+        print("  [2] 💬 Ask Question - Ask AI about your code")
+        print("  [3] 🔎 Semantic Search - Find similar code")
+        print("  [4] 🎮 Demo Mode - Try with sample data")
+        print("  [5] 📊 Index Stats - View current index info")
+        print("  [6] 🗑️  Clear Index - Remove indexed data")
+        print("  [0] ⬅️  Back to Main Menu")
+        
+        choice = input("\nChoice: ").strip()
+        
+        if choice == "0":
+            break
+        elif choice == "1":
+            rag_index_menu()
+        elif choice == "2":
+            rag_ask_menu()
+        elif choice == "3":
+            rag_search_menu()
+        elif choice == "4":
+            rag_demo_menu()
+        elif choice == "5":
+            rag_stats_menu()
+        elif choice == "6":
+            rag_clear_menu()
+        else:
+            print("❌ Invalid option.")
+
+
+def rag_index_menu():
+    """Index a codebase for RAG."""
+    print("\n📦 INDEX CODEBASE")
+    print("-" * 30)
+    
+    path = get_path_input("Enter directory path to index")
+    if not path:
+        return
+    
+    try:
+        from analyzer.parsers import FileParser
+        
+        print("\nParsing code...")
+        parser = FileParser()
+        modules = parser.parse_directory(path, recursive=True)
+        print(f"Found {len(modules)} Python modules")
+        
+        print("\nIndexing for RAG (this may take a moment)...")
+        pipeline = get_rag_pipeline()
+        stats = pipeline.index(modules, str(path), clear_existing=True)
+        
+        print("\n" + "=" * 40)
+        print("✅ INDEXING COMPLETE")
+        print("=" * 40)
+        print(f"  Total chunks: {stats.total_chunks}")
+        print(f"  - Modules: {stats.total_modules}")
+        print(f"  - Classes: {stats.total_classes}")
+        print(f"  - Functions: {stats.total_functions}")
+        print(f"  - Methods: {stats.total_methods}")
+        print("=" * 40)
+        
+    except Exception as e:
+        print(f"\n❌ Error: {e}")
+    
+    input("\nPress Enter to continue...")
+
+
+def rag_ask_menu():
+    """Ask a question about the indexed code."""
+    print("\n💬 ASK AI ABOUT YOUR CODE")
+    print("-" * 30)
+    
+    try:
+        pipeline = get_rag_pipeline()
+        
+        if not pipeline.is_indexed():
+            print("\n⚠️  No code indexed yet!")
+            print("   Use option [1] to index a codebase first,")
+            print("   or option [4] to try demo mode.")
+            input("\nPress Enter to continue...")
+            return
+        
+        print("\nReady! Type your question or 'exit' to quit.")
+        print("Examples:")
+        print("  - How does the Calculator class work?")
+        print("  - What authentication methods are available?")
+        print("  - Find error handling patterns")
+        print()
+        
+        while True:
+            question = input("Question> ").strip()
+            
+            if question.lower() in ('exit', 'quit', 'q', ''):
+                break
+            
+            print("\n🔍 Searching and analyzing...")
+            response = pipeline.query(question)
+            
+            print("\n" + "=" * 50)
+            print("🤖 AI Response:")
+            print("=" * 50)
+            print(response.answer)
+            print("\n" + "-" * 50)
+            print(response.format_sources())
+            print()
+            
+    except Exception as e:
+        print(f"\n❌ Error: {e}")
+        input("\nPress Enter to continue...")
+
+
+def rag_search_menu():
+    """Semantic search over code."""
+    print("\n🔎 SEMANTIC SEARCH")
+    print("-" * 30)
+    
+    try:
+        pipeline = get_rag_pipeline()
+        
+        if not pipeline.is_indexed():
+            print("\n⚠️  No code indexed yet!")
+            input("\nPress Enter to continue...")
+            return
+        
+        query = input("\nSearch query: ").strip()
+        if not query:
+            return
+        
+        print("\n🔍 Searching...")
+        results = pipeline.search(query, top_k=10)
+        
+        if not results:
+            print("\nNo results found.")
+        else:
+            print(f"\nFound {len(results)} results:\n")
+            for i, result in enumerate(results, 1):
+                chunk = result.chunk
+                print(f"{i}. [{chunk.entity_type.upper()}] {chunk.full_name}")
+                print(f"   File: {chunk.file_path}:{chunk.start_line}")
+                print(f"   Score: {result.score:.3f}")
+                snippet = chunk.content[:100].replace('\n', ' ')
+                print(f"   {snippet}...")
+                print()
+        
+    except Exception as e:
+        print(f"\n❌ Error: {e}")
+    
+    input("\nPress Enter to continue...")
+
+
+def rag_demo_menu():
+    """Run RAG demo with sample data."""
+    print("\n🎮 RAG DEMO MODE")
+    print("-" * 30)
+    print("\nThis will create sample code and demonstrate RAG capabilities.")
+    
+    confirm = input("\nProceed? (y/n): ").lower()
+    if confirm != 'y':
+        return
+    
+    try:
+        from analyzer.rag.demo_data import create_demo_project, get_demo_questions
+        from analyzer.parsers import FileParser
+        
+        print("\n1️⃣  Creating demo project...")
+        demo_path = create_demo_project()
+        print(f"   Created demo files in: {demo_path}")
+        
+        print("\n2️⃣  Parsing demo code...")
+        parser = FileParser()
+        modules = parser.parse_directory(str(demo_path), recursive=True)
+        print(f"   Found {len(modules)} modules")
+        
+        print("\n3️⃣  Indexing for RAG...")
+        pipeline = get_rag_pipeline()
+        stats = pipeline.index(modules, str(demo_path), clear_existing=True)
+        print(f"   Indexed {stats.total_chunks} code chunks")
+        
+        print("\n✅ Demo ready!")
+        print("\n" + "=" * 50)
+        
+        # Show demo questions
+        demo_questions = get_demo_questions()
+        print("\n📋 Sample questions you can ask:")
+        for i, q in enumerate(demo_questions[:5], 1):
+            print(f"   [{i}] {q}")
+        print("   [c] Custom question")
+        print("   [0] Exit demo")
+        
+        while True:
+            choice = input("\nSelect a question or type 'c' for custom: ").strip()
+            
+            if choice == '0':
+                break
+            elif choice == 'c':
+                question = input("Your question: ").strip()
+                if not question:
+                    continue
+            elif choice.isdigit() and 1 <= int(choice) <= len(demo_questions):
+                question = demo_questions[int(choice) - 1]
+                print(f"\n❓ {question}")
+            else:
+                print("Invalid choice.")
+                continue
+            
+            print("\n🔍 Searching and analyzing...")
+            response = pipeline.query(question)
+            
+            print("\n" + "=" * 50)
+            print("🤖 AI Response:")
+            print("=" * 50)
+            print(response.answer)
+            print("\n" + "-" * 50)
+            print(response.format_sources())
+            print()
+        
+        # Cleanup option
+        cleanup = input("\nRemove demo files? (y/n): ").lower()
+        if cleanup == 'y':
+            from analyzer.rag.demo_data import cleanup_demo_project
+            cleanup_demo_project(demo_path)
+            print("Demo files removed.")
+            
+    except Exception as e:
+        print(f"\n❌ Error: {e}")
+    
+    input("\nPress Enter to continue...")
+
+
+def rag_stats_menu():
+    """Show RAG index statistics."""
+    print("\n📊 RAG INDEX STATS")
+    print("-" * 30)
+    
+    try:
+        import os
+        
+        pipeline = get_rag_pipeline()
+        config = pipeline.config
+        stats = pipeline.get_stats()
+        
+        print("\n" + "=" * 40)
+        print("📊 Current RAG Index")
+        print("=" * 40)
+        print(f"  Total chunks indexed: {stats.total_chunks}")
+        print(f"  Persist directory: {config.vector_store.persist_directory}")
+        print(f"  Embedding provider: {config.embedding.provider}")
+        print(f"  LLM provider: {config.llm.provider}")
+        
+        # Check AI availability
+        print("\n🔌 AI Providers Available:")
+        providers = [
+            ("GEMINI_API_KEY", "Google Gemini"),
+            ("GOOGLE_API_KEY", "Google Gemini"),
+            ("OPENAI_API_KEY", "OpenAI GPT"),
+            ("ANTHROPIC_API_KEY", "Anthropic Claude"),
+        ]
+        for env_var, name in providers:
+            status = "✅" if os.getenv(env_var) else "❌"
+            print(f"  {status} {name} ({env_var})")
+        
+        print("=" * 40)
+        
+    except Exception as e:
+        print(f"\n❌ Error: {e}")
+    
+    input("\nPress Enter to continue...")
+
+
+def rag_clear_menu():
+    """Clear the RAG index."""
+    print("\n🗑️  CLEAR RAG INDEX")
+    print("-" * 30)
+    
+    confirm = input("\nAre you sure you want to clear the index? (yes/no): ").lower()
+    if confirm != 'yes':
+        print("Cancelled.")
+        input("\nPress Enter to continue...")
+        return
+    
+    try:
+        pipeline = get_rag_pipeline()
+        pipeline.clear_index()
+        reset_rag_pipeline()  # Reset to create fresh instance next time
+        
+        print("\n✅ RAG index cleared.")
+        
+    except Exception as e:
+        print(f"\n❌ Error: {e}")
+    
+    input("\nPress Enter to continue...")
+
+
 def settings_menu():
     """Handle settings."""
     print("\n⚙️  SETTINGS")
@@ -478,7 +809,7 @@ def main():
         print_header()
         print_menu()
         
-        choice = input("Select option: ").strip()
+        choice = input("Select option: ").strip().upper()
         
         try:
             if choice == "0":
@@ -500,6 +831,8 @@ def main():
                 query_code_menu()
             elif choice == "8":
                 generate_summary_menu()
+            elif choice == "A":
+                rag_menu()
             elif choice == "9":
                 settings_menu()
             else:
@@ -515,3 +848,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

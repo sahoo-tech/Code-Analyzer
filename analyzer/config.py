@@ -98,6 +98,22 @@ class AnalyzerConfig:
     exclude_patterns: list = field(default_factory=lambda: ["**/venv/**", "**/.git/**", "**/__pycache__/**"])
     max_workers: int = 4
     follow_symlinks: bool = False
+    
+    # RAG configuration (loaded lazily to avoid circular imports)
+    _rag_config: Optional["RAGConfig"] = field(default=None, repr=False)
+    
+    @property
+    def rag(self) -> "RAGConfig":
+        """Get RAG configuration, creating default if not set."""
+        if self._rag_config is None:
+            from analyzer.rag.config import RAGConfig
+            self._rag_config = RAGConfig()
+        return self._rag_config
+    
+    @rag.setter
+    def rag(self, config: "RAGConfig") -> None:
+        """Set RAG configuration."""
+        self._rag_config = config
 
 
 class ConfigManager:

@@ -1,10 +1,4 @@
-"""
-Complexity calculators.
 
-Implements:
-- Cyclomatic Complexity (McCabe)
-- Cognitive Complexity (SonarSource)
-"""
 
 import ast
 from typing import Union, Optional
@@ -17,20 +11,7 @@ logger = get_logger("metrics.complexity")
 
 
 class CyclomaticComplexityCalculator:
-    """
-    Calculates Cyclomatic Complexity (McCabe).
-    
-    Cyclomatic complexity measures the number of linearly independent paths
-    through a program's source code.
-    
-    CC = E - N + 2P
-    Where:
-        E = number of edges in the control flow graph
-        N = number of nodes
-        P = number of connected components
-    
-    Simplified: Start with 1, add 1 for each decision point.
-    """
+
     
     # Decision point nodes that add to complexity
     DECISION_NODES = (
@@ -91,15 +72,7 @@ class CyclomaticComplexityCalculator:
 
 
 class CognitiveComplexityCalculator:
-    """
-    Calculates Cognitive Complexity (SonarSource).
-    
-    Cognitive complexity measures how difficult the code is to understand.
-    Unlike cyclomatic complexity, it:
-    - Penalizes nesting
-    - Ignores shorthand structures
-    - Considers logical operator sequences differently
-    """
+
     
     def calculate(self, code: str) -> int:
         """Calculate cognitive complexity for code string."""
@@ -216,16 +189,7 @@ def calculate_complexity(
     code: Optional[str] = None,
     node: Optional[ast.AST] = None
 ) -> ComplexityMetrics:
-    """
-    Calculate all complexity metrics.
-    
-    Args:
-        code: Source code string
-        node: AST node (alternative to code)
-        
-    Returns:
-        ComplexityMetrics with all calculated values
-    """
+ 
     if code is None and node is None:
         return ComplexityMetrics()
     

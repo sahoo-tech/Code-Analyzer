@@ -42,6 +42,14 @@ An enterprise-level Python code analyzer designed to help AI systems understand 
 - **Code Summarization**: Concise summaries for context windows
 - **Natural Language Queries**: Query code using plain English
 
+### RAG (Retrieval-Augmented Generation)
+- **Semantic Code Search**: Vector-based similarity search over code entities
+- **Natural Language Q&A**: Ask questions about your codebase in plain English
+- **Multi-Provider Support**: OpenAI, Anthropic, Google, or local embeddings
+- **Hybrid Retrieval**: Combines semantic and keyword search with reranking
+- **Persistent Index**: ChromaDB-powered index survives restarts
+
+
 ## 📦 Installation
 
 ```bash

@@ -1,11 +1,4 @@
-"""
-Natural language query interface.
 
-Allows querying code using natural language patterns:
-- Find functions that do X
-- Show classes inheriting from Y
-- List all async methods
-"""
 
 import re
 from dataclasses import dataclass
@@ -72,15 +65,7 @@ class QueryInterface:
                     self._methods.append((method.name.lower(), method, cls, module))
     
     def query(self, query_string: str) -> QueryResult:
-        """
-        Execute a natural language query.
-        
-        Args:
-            query_string: Natural language query
-            
-        Returns:
-            QueryResult with matching items
-        """
+     
         query_lower = query_string.lower().strip()
         
         # Pattern matching for common queries
@@ -324,15 +309,6 @@ class QueryInterface:
 
 
 def query_codebase(modules: list[Module], query: str) -> QueryResult:
-    """
-    Query a codebase using natural language.
-    
-    Args:
-        modules: List of parsed modules
-        query: Natural language query
-        
-    Returns:
-        QueryResult with matching items
-    """
+
     interface = QueryInterface(modules)
     return interface.query(query)

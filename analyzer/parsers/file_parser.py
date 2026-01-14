@@ -1,8 +1,4 @@
-"""
-File and directory parser.
 
-Handles file discovery, caching, and coordination of parsing.
-"""
 
 import os
 import hashlib
@@ -22,14 +18,7 @@ logger = get_logger("parsers.file")
 
 
 class FileParser:
-    """
-    Parses files and directories.
-    
-    Coordinates language-specific parsers and handles:
-    - File discovery
-    - Caching
-    - Parallel processing
-    """
+
     
     def __init__(self, config: Optional[AnalyzerConfig] = None):
         self.config = config or get_config()
@@ -55,16 +44,7 @@ class FileParser:
         path: Union[str, Path],
         use_cache: bool = True
     ) -> Module:
-        """
-        Parse a single file.
-        
-        Args:
-            path: Path to the file
-            use_cache: Whether to use cached results
-            
-        Returns:
-            Parsed Module object
-        """
+   
         path = Path(path).resolve()
         str_path = str(path)
         
@@ -103,20 +83,8 @@ class FileParser:
         max_workers: Optional[int] = None,
         progress_callback: Optional[Callable[[int, int], None]] = None,
     ) -> list[Module]:
-        """
-        Parse all matching files in a directory.
-        
-        Args:
-            directory: Root directory to parse
-            recursive: Whether to parse subdirectories
-            include_patterns: Glob patterns to include
-            exclude_patterns: Glob patterns to exclude
-            max_workers: Number of parallel workers
-            progress_callback: Callback for progress updates (current, total)
-            
-        Returns:
-            List of parsed Module objects
-        """
+     
+   
         directory = Path(directory).resolve()
         
         if not directory.exists():

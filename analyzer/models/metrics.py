@@ -1,12 +1,4 @@
-"""
-Metrics data models.
 
-Defines structured representations for code metrics:
-- Complexity metrics (cyclomatic, cognitive)
-- Lines of code metrics
-- Maintainability index
-- Halstead metrics
-"""
 
 from dataclasses import dataclass, field
 from typing import Optional, Any
@@ -165,18 +157,7 @@ class MaintainabilityMetrics:
     
     @property
     def maintainability_index(self) -> float:
-        """
-        Calculate Maintainability Index.
-        
-        Original formula:
-        MI = 171 - 5.2 * ln(V) - 0.23 * G - 16.2 * ln(LOC)
-        
-        Microsoft formula (with comments):
-        MI = MAX(0, (171 - 5.2 * ln(V) - 0.23 * G - 16.2 * ln(LOC) + 50 * sin(sqrt(2.4 * CM))) * 100 / 171)
-        
-        Returns:
-            Maintainability index (0-100 scale)
-        """
+  
         import math
         
         if self.loc == 0 or self.halstead_volume == 0:

@@ -1,9 +1,4 @@
-"""
-Maintainability Index calculator.
 
-Calculates the Maintainability Index (MI) which is a composite metric
-combining Halstead Volume, Cyclomatic Complexity, and Lines of Code.
-"""
 
 from typing import Optional
 
@@ -17,18 +12,7 @@ logger = get_logger("metrics.maintainability")
 
 
 class MaintainabilityCalculator:
-    """
-    Maintainability Index calculator.
-    
-    Uses the Microsoft variant of the Maintainability Index formula:
-    MI = MAX(0, (171 - 5.2*ln(V) - 0.23*G - 16.2*ln(LOC) + 50*sin(sqrt(2.4*CM))) * 100/171)
-    
-    Where:
-        V = Halstead Volume
-        G = Cyclomatic Complexity
-        LOC = Source Lines of Code
-        CM = Comment Ratio (percent of comments)
-    """
+
     
     def __init__(self):
         self.halstead_calc = HalsteadCalculator()
@@ -36,15 +20,7 @@ class MaintainabilityCalculator:
         self.loc_calc = LOCCalculator()
     
     def calculate(self, code: str) -> MaintainabilityMetrics:
-        """
-        Calculate maintainability metrics for code.
-        
-        Args:
-            code: Source code string
-            
-        Returns:
-            MaintainabilityMetrics with calculated index
-        """
+ 
         # Calculate component metrics
         halstead = self.halstead_calc.calculate(code)
         cyclomatic = self.complexity_calc.calculate(code)
@@ -63,15 +39,7 @@ class MaintainabilityCalculator:
         )
     
     def calculate_quality_score(self, code: str) -> QualityScore:
-        """
-        Calculate comprehensive quality score for code.
-        
-        Args:
-            code: Source code string
-            
-        Returns:
-            QualityScore with all metrics
-        """
+     
         from analyzer.metrics.complexity import calculate_complexity
         from analyzer.metrics.loc import calculate_loc
         from analyzer.metrics.halstead import calculate_halstead
@@ -90,26 +58,10 @@ class MaintainabilityCalculator:
 
 
 def calculate_maintainability(code: str) -> MaintainabilityMetrics:
-    """
-    Calculate maintainability metrics for code.
-    
-    Args:
-        code: Source code string
-        
-    Returns:
-        MaintainabilityMetrics with calculated index
-    """
+
     return MaintainabilityCalculator().calculate(code)
 
 
 def calculate_quality(code: str) -> QualityScore:
-    """
-    Calculate comprehensive quality score for code.
-    
-    Args:
-        code: Source code string
-        
-    Returns:
-        QualityScore with all metrics
-    """
+
     return MaintainabilityCalculator().calculate_quality_score(code)

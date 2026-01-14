@@ -1,11 +1,4 @@
-"""
-Graph data models.
 
-Defines graph structures for:
-- Call graphs
-- Dependency graphs
-- Module relationships
-"""
 
 from dataclasses import dataclass, field
 from typing import Optional, Any, Iterator
@@ -316,13 +309,7 @@ class DependencyGraph(Graph):
         return result
     
     def get_layers(self) -> list[list[str]]:
-        """
-        Get dependency layers (modules at same depth).
-        
-        Returns:
-            List of layers, where each layer contains module IDs
-            at the same dependency depth.
-        """
+ 
         layers: dict[int, list[str]] = {}
         
         for node_id in self.nodes:

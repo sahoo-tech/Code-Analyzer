@@ -1,8 +1,4 @@
-"""
-Main analyzer engine.
 
-Orchestrates all analysis modules to provide comprehensive code analysis.
-"""
 
 import json
 from pathlib import Path
@@ -103,20 +99,10 @@ class AnalysisResult:
 
 
 class CodeAnalyzer:
-    """
-    Main code analyzer engine.
-    
-    Orchestrates all analysis modules to provide comprehensive
-    code analysis for AI systems.
-    """
+
     
     def __init__(self, config: Optional[AnalyzerConfig] = None):
-        """
-        Initialize the analyzer.
-        
-        Args:
-            config: Optional configuration override
-        """
+ 
         self.config = config or get_config()
         self.parser = FileParser(self.config)
         
@@ -127,15 +113,7 @@ class CodeAnalyzer:
         )
     
     def analyze_file(self, path: Union[str, Path]) -> AnalysisResult:
-        """
-        Analyze a single file.
-        
-        Args:
-            path: Path to the file
-            
-        Returns:
-            AnalysisResult with analysis data
-        """
+
         path = validate_path(path)
         
         logger.info(f"Analyzing file: {path}")
@@ -161,16 +139,7 @@ class CodeAnalyzer:
         path: Union[str, Path],
         recursive: bool = True,
     ) -> AnalysisResult:
-        """
-        Analyze a directory of files.
-        
-        Args:
-            path: Path to the directory
-            recursive: Whether to analyze subdirectories
-            
-        Returns:
-            AnalysisResult with analysis data
-        """
+
         path = validate_path(path)
         
         logger.info(f"Analyzing directory: {path}")
@@ -204,16 +173,7 @@ class CodeAnalyzer:
         code: str, 
         filename: str = "<string>"
     ) -> AnalysisResult:
-        """
-        Analyze code from a string.
-        
-        Args:
-            code: Source code string
-            filename: Optional filename for context
-            
-        Returns:
-            AnalysisResult with analysis data
-        """
+
         logger.info(f"Analyzing code: {filename}")
         
         result = AnalysisResult()
@@ -287,29 +247,11 @@ class CodeAnalyzer:
         result: AnalysisResult,
         format_type: str = "json"
     ) -> str:
-        """
-        Get AI-optimized summary of analysis.
-        
-        Args:
-            result: Analysis result
-            format_type: Output format ("json" or "markdown")
-            
-        Returns:
-            Formatted summary string
-        """
+
         return format_for_ai(result.to_dict(), format_type)
     
     def query(self, result: AnalysisResult, query_string: str) -> dict:
-        """
-        Query analysis results using natural language.
-        
-        Args:
-            result: Analysis result
-            query_string: Natural language query
-            
-        Returns:
-            Query result as dictionary
-        """
+ 
         interface = QueryInterface(result.modules)
         query_result = interface.query(query_string)
         return query_result.to_dict()

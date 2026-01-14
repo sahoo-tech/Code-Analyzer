@@ -1,13 +1,4 @@
-"""
-Secrets detector.
 
-Detects hardcoded secrets and sensitive data:
-- API keys
-- Passwords
-- Tokens
-- Private keys
-- Connection strings
-"""
 
 import re
 from dataclasses import dataclass

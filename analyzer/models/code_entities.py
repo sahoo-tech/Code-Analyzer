@@ -1,11 +1,4 @@
-"""
-Code entity data models.
 
-Defines structured representations for code elements extracted during parsing:
-- Modules, Classes, Functions, Methods
-- Variables, Parameters, Imports
-- Decorators, Docstrings
-"""
 
 from dataclasses import dataclass, field
 from typing import Optional, Any

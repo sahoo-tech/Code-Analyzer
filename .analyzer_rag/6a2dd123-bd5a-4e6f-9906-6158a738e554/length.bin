@@ -1,0 +1,3 @@
+invalid type: string "# Method in class PythonASTVisitor\ndef _parse_function(self, node: Union[ast.FunctionDef, ast.AsyncFunctionDef], is_async: bool)\n    \"\"\"Parse a function definition.\n    \"\"\"", expected f64ooleann    def parse_code(self, code, filename)", expected i64, dataclasses
+Contains: 7 classes, 0 functions
+Classes: ProcessingResult, DataLoader, JSONLoader, CSVLoader, DataTransfo

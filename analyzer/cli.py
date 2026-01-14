@@ -1,6 +1,4 @@
-"""
-Command-line interface for the Code Analyzer.
-"""
+
 
 import argparse
 import json
@@ -92,6 +90,95 @@ def create_parser() -> argparse.ArgumentParser:
         choices=["yaml", "json"],
         default="yaml",
         help="Config file format (default: yaml)",
+    )
+    
+    # RAG subparser
+    rag_parser = subparsers.add_parser(
+        "rag", 
+        help="RAG (Retrieval-Augmented Generation) commands"
+    )
+    rag_subparsers = rag_parser.add_subparsers(dest="rag_command", help="RAG commands")
+    
+    # RAG index command
+    rag_index = rag_subparsers.add_parser("index", help="Index codebase for RAG")
+    rag_index.add_argument(
+        "path",
+        help="Directory to index",
+    )
+    rag_index.add_argument(
+        "--clear",
+        action="store_true",
+        help="Clear existing index before indexing",
+    )
+    rag_index.add_argument(
+        "--persist-dir",
+        default=".analyzer_rag",
+        help="Directory for persistent storage (default: .analyzer_rag)",
+    )
+    
+    # RAG ask command
+    rag_ask = rag_subparsers.add_parser("ask", help="Ask a question about the code")
+    rag_ask.add_argument(
+        "question",
+        help="Question to ask about the codebase",
+    )
+    rag_ask.add_argument(
+        "--path",
+        help="Optional: Index this path first before asking",
+    )
+    rag_ask.add_argument(
+        "--top-k",
+        type=int,
+        default=10,
+        help="Number of code chunks to retrieve (default: 10)",
+    )
+    rag_ask.add_argument(
+        "--persist-dir",
+        default=".analyzer_rag",
+        help="Directory for persistent storage",
+    )
+    
+    # RAG search command
+    rag_search = rag_subparsers.add_parser("search", help="Semantic search over code")
+    rag_search.add_argument(
+        "query",
+        help="Search query",
+    )
+    rag_search.add_argument(
+        "--path",
+        help="Optional: Index this path first",
+    )
+    rag_search.add_argument(
+        "--top-k",
+        type=int,
+        default=10,
+        help="Number of results (default: 10)",
+    )
+    rag_search.add_argument(
+        "--type",
+        choices=["class", "function", "method", "module"],
+        help="Filter by entity type",
+    )
+    rag_search.add_argument(
+        "--persist-dir",
+        default=".analyzer_rag",
+        help="Directory for persistent storage",
+    )
+    
+    # RAG clear command
+    rag_clear = rag_subparsers.add_parser("clear", help="Clear the RAG index")
+    rag_clear.add_argument(
+        "--persist-dir",
+        default=".analyzer_rag",
+        help="Directory for persistent storage",
+    )
+    
+    # RAG stats command
+    rag_stats = rag_subparsers.add_parser("stats", help="Show RAG index statistics")
+    rag_stats.add_argument(
+        "--persist-dir",
+        default=".analyzer_rag",
+        help="Directory for persistent storage",
     )
     
     return parser
@@ -229,6 +316,202 @@ def format_summary(summary: dict) -> str:
     return "\n".join(lines)
 
 
+def cmd_rag(args: argparse.Namespace) -> int:
+    """Execute RAG commands."""
+    if not hasattr(args, 'rag_command') or not args.rag_command:
+        print("Usage: code-analyzer rag <command>")
+        print("Commands: index, ask, search, clear, stats")
+        return 1
+    
+    try:
+        from analyzer.rag.pipeline import RAGPipeline
+        from analyzer.rag.config import RAGConfig
+        from analyzer.parsers import FileParser
+    except ImportError as e:
+        print(f"Error: RAG dependencies not available: {e}", file=sys.stderr)
+        print("Install with: pip install chromadb openai", file=sys.stderr)
+        return 1
+    
+    # Create RAG config with persist directory
+    rag_config = RAGConfig()
+    rag_config.vector_store.persist_directory = args.persist_dir
+    
+    if args.rag_command == "index":
+        return cmd_rag_index(args, rag_config)
+    elif args.rag_command == "ask":
+        return cmd_rag_ask(args, rag_config)
+    elif args.rag_command == "search":
+        return cmd_rag_search(args, rag_config)
+    elif args.rag_command == "clear":
+        return cmd_rag_clear(args, rag_config)
+    elif args.rag_command == "stats":
+        return cmd_rag_stats(args, rag_config)
+    else:
+        print(f"Unknown RAG command: {args.rag_command}")
+        return 1
+
+
+def cmd_rag_index(args: argparse.Namespace, rag_config) -> int:
+    """Index a codebase for RAG."""
+    from analyzer.rag.pipeline import RAGPipeline
+    from analyzer.parsers import FileParser
+    
+    path = Path(args.path)
+    if not path.exists():
+        print(f"Error: Path not found: {path}", file=sys.stderr)
+        return 1
+    
+    print(f"Indexing: {path}")
+    
+    # Parse the codebase
+    parser = FileParser()
+    if path.is_file():
+        modules = [parser.parse_file(path)]
+    else:
+        modules = parser.parse_directory(path, recursive=True)
+    
+    print(f"Parsed {len(modules)} modules")
+    
+    # Create pipeline and index
+    pipeline = RAGPipeline(rag_config)
+    stats = pipeline.index(modules, str(path), clear_existing=args.clear)
+    
+    print("\n" + "=" * 40)
+    print("RAG INDEX COMPLETE")
+    print("=" * 40)
+    print(f"Total chunks indexed: {stats.total_chunks}")
+    print(f"  - Modules: {stats.total_modules}")
+    print(f"  - Classes: {stats.total_classes}")
+    print(f"  - Functions: {stats.total_functions}")
+    print(f"  - Methods: {stats.total_methods}")
+    print(f"Persist directory: {stats.persist_directory}")
+    print(f"Embedding provider: {stats.embedding_provider}")
+    
+    return 0
+
+
+def cmd_rag_ask(args: argparse.Namespace, rag_config) -> int:
+    """Ask a question about the indexed codebase."""
+    from analyzer.rag.pipeline import RAGPipeline
+    from analyzer.parsers import FileParser
+    
+    pipeline = RAGPipeline(rag_config)
+    
+    # Index path if provided
+    if args.path:
+        path = Path(args.path)
+        if not path.exists():
+            print(f"Error: Path not found: {path}", file=sys.stderr)
+            return 1
+        
+        print(f"Indexing: {path}")
+        parser = FileParser()
+        if path.is_file():
+            modules = [parser.parse_file(path)]
+        else:
+            modules = parser.parse_directory(path, recursive=True)
+        
+        pipeline.index(modules, str(path))
+    
+    # Check if index exists
+    if not pipeline.is_indexed():
+        print("Error: No index found. Run 'code-analyzer rag index <path>' first.")
+        return 1
+    
+    print(f"\nQuestion: {args.question}\n")
+    print("-" * 40)
+    
+    # Query the codebase
+    response = pipeline.query(args.question, top_k=args.top_k)
+    
+    print(response.answer)
+    print("\n" + "-" * 40)
+    print(response.format_sources())
+    
+    return 0
+
+
+def cmd_rag_search(args: argparse.Namespace, rag_config) -> int:
+    """Semantic search over the codebase."""
+    from analyzer.rag.pipeline import RAGPipeline
+    from analyzer.parsers import FileParser
+    
+    pipeline = RAGPipeline(rag_config)
+    
+    # Index path if provided
+    if args.path:
+        path = Path(args.path)
+        if not path.exists():
+            print(f"Error: Path not found: {path}", file=sys.stderr)
+            return 1
+        
+        print(f"Indexing: {path}")
+        parser = FileParser()
+        if path.is_file():
+            modules = [parser.parse_file(path)]
+        else:
+            modules = parser.parse_directory(path, recursive=True)
+        
+        pipeline.index(modules, str(path))
+    
+    # Check if index exists
+    if not pipeline.is_indexed():
+        print("Error: No index found. Run 'code-analyzer rag index <path>' first.")
+        return 1
+    
+    print(f"Searching for: {args.query}\n")
+    
+    # Search
+    filter_type = getattr(args, 'type', None)
+    results = pipeline.search(args.query, top_k=args.top_k, filter_entity_type=filter_type)
+    
+    if not results:
+        print("No results found.")
+        return 0
+    
+    print(f"Found {len(results)} results:\n")
+    for i, result in enumerate(results, 1):
+        chunk = result.chunk
+        print(f"{i}. [{chunk.entity_type.upper()}] {chunk.full_name}")
+        print(f"   File: {chunk.file_path}:{chunk.start_line}-{chunk.end_line}")
+        print(f"   Score: {result.score:.3f}")
+        # Show snippet
+        snippet = chunk.content[:150].replace('\n', ' ')
+        print(f"   {snippet}...")
+        print()
+    
+    return 0
+
+
+def cmd_rag_clear(args: argparse.Namespace, rag_config) -> int:
+    """Clear the RAG index."""
+    from analyzer.rag.pipeline import RAGPipeline
+    
+    pipeline = RAGPipeline(rag_config)
+    pipeline.clear_index()
+    
+    print(f"Cleared RAG index from: {args.persist_dir}")
+    return 0
+
+
+def cmd_rag_stats(args: argparse.Namespace, rag_config) -> int:
+    """Show RAG index statistics."""
+    from analyzer.rag.pipeline import RAGPipeline
+    
+    pipeline = RAGPipeline(rag_config)
+    stats = pipeline.get_stats()
+    
+    print("=" * 40)
+    print("RAG INDEX STATISTICS")
+    print("=" * 40)
+    print(f"Total chunks: {stats.total_chunks}")
+    print(f"Persist directory: {rag_config.vector_store.persist_directory}")
+    print(f"Embedding provider: {rag_config.embedding.provider}")
+    print(f"LLM provider: {rag_config.llm.provider}")
+    
+    return 0
+
+
 def main() -> int:
     """Main entry point."""
     parser = create_parser()
@@ -247,6 +530,8 @@ def main() -> int:
             return cmd_summary(args)
         elif args.command == "init":
             return cmd_init(args)
+        elif args.command == "rag":
+            return cmd_rag(args)
         else:
             parser.print_help()
             return 0
@@ -260,3 +545,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
+

@@ -1,11 +1,4 @@
-"""
-Code summarizer for AI context.
 
-Creates concise summaries of code for LLM context windows:
-- Module summaries
-- Project overviews
-- Focused code snippets
-"""
 
 from dataclasses import dataclass
 from typing import Optional
@@ -34,15 +27,7 @@ class CodeSummarizer:
         self.config = config or SummaryConfig()
     
     def summarize_module(self, module: Module) -> str:
-        """
-        Create a concise summary of a module.
-        
-        Args:
-            module: Parsed module to summarize
-            
-        Returns:
-            Summary string
-        """
+  
         parts = []
         
         # Header
@@ -148,15 +133,7 @@ class CodeSummarizer:
         return "\n".join(parts)
     
     def summarize_project(self, modules: list[Module]) -> str:
-        """
-        Create a project-level summary.
-        
-        Args:
-            modules: List of parsed modules
-            
-        Returns:
-            Project summary string
-        """
+   
         parts = []
         
         # Overview statistics
@@ -239,16 +216,7 @@ def summarize_module(
     module: Module,
     config: Optional[SummaryConfig] = None
 ) -> str:
-    """
-    Create a summary of a module.
-    
-    Args:
-        module: Module to summarize
-        config: Summary configuration
-        
-    Returns:
-        Summary string
-    """
+
     summarizer = CodeSummarizer(config)
     return summarizer.summarize_module(module)
 
@@ -257,15 +225,6 @@ def summarize_project(
     modules: list[Module],
     config: Optional[SummaryConfig] = None
 ) -> str:
-    """
-    Create a project summary.
-    
-    Args:
-        modules: List of modules
-        config: Summary configuration
-        
-    Returns:
-        Summary string
-    """
+
     summarizer = CodeSummarizer(config)
     return summarizer.summarize_project(modules)

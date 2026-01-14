@@ -1,9 +1,4 @@
-"""
-Python AST Parser.
 
-Comprehensive Python source code parser using the AST module.
-Extracts all code entities with full metadata.
-"""
 
 import ast
 from pathlib import Path

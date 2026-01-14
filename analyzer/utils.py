@@ -1,13 +1,4 @@
-"""
-Utility functions for the Code Analyzer.
 
-Provides shared utilities for:
-- File handling
-- Caching
-- Decorators
-- String manipulation
-- Path handling
-"""
 
 import os
 import re
@@ -40,21 +31,7 @@ def read_file(
     encoding: str = "utf-8",
     fallback_encodings: Optional[list[str]] = None
 ) -> str:
-    """
-    Read file contents with encoding fallback.
-    
-    Args:
-        path: Path to the file
-        encoding: Primary encoding to try
-        fallback_encodings: List of fallback encodings
-        
-    Returns:
-        File contents as string
-        
-    Raises:
-        FileSystemError: If file cannot be read
-        EncodingError: If file cannot be decoded
-    """
+
     path = Path(path)
     fallback_encodings = fallback_encodings or ["latin-1", "cp1252"]
     
@@ -83,16 +60,7 @@ def read_file(
 
 
 def get_file_hash(path: Union[str, Path], algorithm: str = "md5") -> str:
-    """
-    Calculate hash of a file's contents.
-    
-    Args:
-        path: Path to the file
-        algorithm: Hash algorithm (md5, sha1, sha256)
-        
-    Returns:
-        Hexadecimal hash string
-    """
+
     path = Path(path)
     hasher = hashlib.new(algorithm)
     
@@ -110,19 +78,7 @@ def find_files(
     follow_symlinks: bool = False,
     max_depth: Optional[int] = None,
 ) -> Iterator[Path]:
-    """
-    Find files matching patterns in a directory.
-    
-    Args:
-        directory: Root directory to search
-        include_patterns: Glob patterns to include (default: ["*.py"])
-        exclude_patterns: Glob patterns to exclude
-        follow_symlinks: Whether to follow symbolic links
-        max_depth: Maximum directory depth to search
-        
-    Yields:
-        Path objects for matching files
-    """
+
     directory = Path(directory)
     include_patterns = include_patterns or ["*.py"]
     exclude_patterns = exclude_patterns or []
@@ -183,9 +139,6 @@ def get_relative_path(path: Union[str, Path], base: Union[str, Path]) -> str:
         return str(path)
 
 
-# ============================================================================
-# Caching Utilities
-# ============================================================================
 
 def memoize(func: F) -> F:
     """Simple memoization decorator for functions with hashable arguments."""
@@ -206,15 +159,7 @@ def memoize(func: F) -> F:
 
 
 def timed_cache(ttl_seconds: int = 300) -> Callable[[F], F]:
-    """
-    Decorator that caches results with a time-to-live.
-    
-    Args:
-        ttl_seconds: Cache lifetime in seconds
-        
-    Returns:
-        Decorated function
-    """
+
     def decorator(func: F) -> F:
         cache: dict[tuple, tuple[float, Any]] = {}
         
@@ -238,9 +183,6 @@ def timed_cache(ttl_seconds: int = 300) -> Callable[[F], F]:
     return decorator
 
 
-# ============================================================================
-# String Utilities
-# ============================================================================
 
 def normalize_whitespace(text: str) -> str:
     """Normalize whitespace in text (collapse multiple spaces, strip)."""
@@ -248,12 +190,7 @@ def normalize_whitespace(text: str) -> str:
 
 
 def count_lines(text: str) -> dict[str, int]:
-    """
-    Count different types of lines in text.
-    
-    Returns:
-        Dictionary with total, blank, and non_blank counts
-    """
+
     lines = text.splitlines()
     blank = sum(1 for line in lines if not line.strip())
     
@@ -294,9 +231,6 @@ def to_pascal_case(name: str) -> str:
     return "".join(x.title() for x in name.split("_"))
 
 
-# ============================================================================
-# Parallel Processing
-# ============================================================================
 
 def parallel_map(
     func: Callable[[T], Any],
@@ -304,18 +238,7 @@ def parallel_map(
     max_workers: Optional[int] = None,
     desc: Optional[str] = None,
 ) -> list[Any]:
-    """
-    Apply function to items in parallel.
-    
-    Args:
-        func: Function to apply
-        items: Items to process
-        max_workers: Maximum number of threads
-        desc: Description for progress logging
-        
-    Returns:
-        List of results in order
-    """
+
     if not items:
         return []
     
@@ -344,20 +267,9 @@ def parallel_map(
     return results
 
 
-# ============================================================================
-# Timing Utilities  
-# ============================================================================
 
 def timer(name: Optional[str] = None) -> Callable[[F], F]:
-    """
-    Decorator to time function execution.
-    
-    Args:
-        name: Optional name for the timer (defaults to function name)
-        
-    Returns:
-        Decorated function
-    """
+
     def decorator(func: F) -> F:
         timer_name = name or func.__name__
         
@@ -392,24 +304,9 @@ class Timer:
         logger.debug(f"{self.name} completed in {self.elapsed:.3f}s")
 
 
-# ============================================================================
-# Validation Utilities
-# ============================================================================
 
 def validate_path(path: Union[str, Path], must_exist: bool = True) -> Path:
-    """
-    Validate and normalize a path.
-    
-    Args:
-        path: Path to validate
-        must_exist: Whether the path must exist
-        
-    Returns:
-        Normalized Path object
-        
-    Raises:
-        FileSystemError: If validation fails
-    """
+
     path = Path(path).resolve()
     
     if must_exist and not path.exists():

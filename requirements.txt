@@ -32,3 +32,12 @@ pyyaml>=6.0.1
 
 # Caching
 diskcache>=5.6.0
+
+# RAG dependencies (optional - for semantic code search & Q&A)
+chromadb>=0.4.0
+openai>=1.0.0
+anthropic>=0.7.0
+google-generativeai>=0.3.0
+sentence-transformers>=2.2.0
+tiktoken>=0.5.0
+

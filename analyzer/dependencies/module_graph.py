@@ -1,8 +1,4 @@
-"""
-Module dependency graph builder.
 
-Builds module-level dependency graphs showing how modules depend on each other.
-"""
 
 from pathlib import Path
 from typing import Optional
@@ -27,13 +23,7 @@ class ModuleDependency:
 
 
 class ModuleGraphBuilder:
-    """
-    Builds module-level dependency graphs.
-    
-    Creates a graph where:
-    - Nodes are modules/packages
-    - Edges represent import dependencies
-    """
+   
     
     def __init__(self, project_root: Optional[Path] = None):
         self.project_root = Path(project_root) if project_root else None
@@ -42,15 +32,7 @@ class ModuleGraphBuilder:
         self._module_paths: dict[str, str] = {}  # module_id -> file_path
     
     def build(self, modules: list[Module]) -> DependencyGraph:
-        """
-        Build module dependency graph.
-        
-        Args:
-            modules: List of parsed modules
-            
-        Returns:
-            DependencyGraph with module relationships
-        """
+  
         # Register all modules
         for module in modules:
             self._register_module(module)
@@ -155,30 +137,15 @@ class ModuleGraphBuilder:
         return None
     
     def find_circular_dependencies(self) -> list[list[str]]:
-        """
-        Find all circular dependency cycles.
-        
-        Returns:
-            List of cycles, where each cycle is a list of module IDs
-        """
+   
         return self.graph.find_circular_dependencies()
     
     def get_dependency_order(self) -> list[str]:
-        """
-        Get modules in dependency order (dependencies first).
-        
-        Returns:
-            List of module IDs in topological order
-        """
+      
         return self.graph.topological_sort()
     
     def get_dependency_layers(self) -> list[list[str]]:
-        """
-        Get modules organized by dependency layers.
-        
-        Returns:
-            List of layers, each containing module IDs at the same depth
-        """
+    
         return self.graph.get_layers()
     
     def get_module_dependencies(self, module_id: str) -> list[str]:
@@ -196,15 +163,6 @@ def build_module_graph(
     modules: list[Module],
     project_root: Optional[Path] = None
 ) -> DependencyGraph:
-    """
-    Build module dependency graph.
-    
-    Args:
-        modules: List of parsed modules
-        project_root: Root directory of the project
-        
-    Returns:
-        DependencyGraph with module relationships
-    """
+ 
     builder = ModuleGraphBuilder(project_root)
     return builder.build(modules)

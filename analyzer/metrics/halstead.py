@@ -1,15 +1,4 @@
-"""
-Halstead complexity metrics calculator.
 
-Implements Halstead's software science metrics:
-- Program vocabulary (n)
-- Program length (N)
-- Volume (V)
-- Difficulty (D)
-- Effort (E)
-- Time to program (T)
-- Estimated bugs (B)
-"""
 
 import ast
 import keyword
@@ -23,13 +12,7 @@ logger = get_logger("metrics.halstead")
 
 
 class HalsteadCalculator:
-    """
-    Halstead complexity metrics calculator.
-    
-    Operators include: keywords, operators, delimiters
-    Operands include: identifiers, literals
-    """
-    
+
     # Python operators
     OPERATORS = {
         # Arithmetic
@@ -61,15 +44,7 @@ class HalsteadCalculator:
     }
     
     def calculate(self, code: str) -> HalsteadMetrics:
-        """
-        Calculate Halstead metrics for code.
-        
-        Args:
-            code: Source code string
-            
-        Returns:
-            HalsteadMetrics with all calculated values
-        """
+   
         try:
             tree = ast.parse(code)
             return self._analyze_tree(tree)
@@ -206,13 +181,5 @@ class HalsteadCalculator:
 
 
 def calculate_halstead(code: str) -> HalsteadMetrics:
-    """
-    Calculate Halstead metrics for code.
-    
-    Args:
-        code: Source code string
-        
-    Returns:
-        HalsteadMetrics with all calculated values
-    """
+ 
     return HalsteadCalculator().calculate(code)

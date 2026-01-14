@@ -1,8 +1,4 @@
-"""
-Import analyzer.
 
-Analyzes import statements to understand module dependencies.
-"""
 
 import ast
 import sys
@@ -49,14 +45,7 @@ class ImportAnalysisResult:
 
 
 class ImportAnalyzer:
-    """
-    Analyzes imports in Python code.
-    
-    Resolves import paths and categorizes them as:
-    - Standard library
-    - Third-party packages
-    - Local/project imports
-    """
+  
     
     # Common stdlib module names (subset for quick checks)
     STDLIB_MODULES = {
@@ -99,15 +88,7 @@ class ImportAnalyzer:
         return stdlib
     
     def analyze(self, module: Module) -> ImportAnalysisResult:
-        """
-        Analyze imports in a module.
-        
-        Args:
-            module: Parsed module to analyze
-            
-        Returns:
-            ImportAnalysisResult with categorized imports
-        """
+   
         result = ImportAnalysisResult()
         
         for imp in module.imports:
@@ -232,15 +213,6 @@ def analyze_imports(
     module: Module,
     project_root: Optional[Path] = None
 ) -> ImportAnalysisResult:
-    """
-    Analyze imports in a module.
-    
-    Args:
-        module: Parsed module to analyze
-        project_root: Root directory of the project
-        
-    Returns:
-        ImportAnalysisResult with categorized imports
-    """
+
     analyzer = ImportAnalyzer(project_root)
     return analyzer.analyze(module)

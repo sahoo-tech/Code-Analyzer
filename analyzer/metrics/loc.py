@@ -1,13 +1,4 @@
-"""
-Lines of Code calculator.
 
-Measures various LOC metrics:
-- Total lines
-- Source lines (non-blank, non-comment)
-- Comment lines
-- Blank lines
-- Docstring lines
-"""
 
 import re
 import tokenize
@@ -21,25 +12,10 @@ logger = get_logger("metrics.loc")
 
 
 class LOCCalculator:
-    """
-    Lines of Code calculator.
-    
-    Uses tokenization for accurate counting that handles:
-    - Multi-line strings
-    - Docstrings
-    - Comments in various positions
-    """
+
     
     def calculate(self, code: str) -> LOCMetrics:
-        """
-        Calculate LOC metrics for code.
-        
-        Args:
-            code: Source code string
-            
-        Returns:
-            LOCMetrics with all counts
-        """
+ 
         lines = code.splitlines()
         total = len(lines)
         
@@ -96,13 +72,7 @@ class LOCCalculator:
         )
     
     def _is_docstring(self, tokens: list, index: int) -> bool:
-        """
-        Check if a string token is a docstring.
-        
-        A docstring is a string literal that:
-        - Appears as the first statement after a function/class/module definition
-        - Is not assigned to a variable
-        """
+ 
         if index == 0:
             return True  # Module docstring
         
@@ -169,13 +139,5 @@ class LOCCalculator:
 
 
 def calculate_loc(code: str) -> LOCMetrics:
-    """
-    Calculate LOC metrics for code.
-    
-    Args:
-        code: Source code string
-        
-    Returns:
-        LOCMetrics with all counts
-    """
+
     return LOCCalculator().calculate(code)

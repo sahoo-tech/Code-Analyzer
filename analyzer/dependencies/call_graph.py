@@ -1,8 +1,4 @@
-"""
-Call graph builder.
 
-Builds function/method call graphs from parsed code.
-"""
 
 import ast
 from pathlib import Path
@@ -16,28 +12,14 @@ logger = get_logger("dependencies.call_graph")
 
 
 class CallGraphBuilder:
-    """
-    Builds call graphs from parsed modules.
-    
-    Creates a graph where:
-    - Nodes are functions/methods
-    - Edges represent function calls
-    """
+ 
     
     def __init__(self):
         self.graph = CallGraph(name="call_graph")
         self._module_functions: dict[str, str] = {}  # name -> full_id
     
     def build(self, modules: list[Module]) -> CallGraph:
-        """
-        Build call graph from multiple modules.
-        
-        Args:
-            modules: List of parsed modules
-            
-        Returns:
-            CallGraph with all function relationships
-        """
+   
         # First pass: register all functions
         for module in modules:
             self._register_module(module)
@@ -208,14 +190,6 @@ class CallGraphBuilder:
 
 
 def build_call_graph(modules: list[Module]) -> CallGraph:
-    """
-    Build call graph from modules.
-    
-    Args:
-        modules: List of parsed modules
-        
-    Returns:
-        CallGraph with all function relationships
-    """
+
     builder = CallGraphBuilder()
     return builder.build(modules)
