@@ -282,9 +282,7 @@ What improvements would you suggest?
 
 MIT License - see [LICENSE](LICENSE) for details.
 
-## 🤝 Contributing
 
-Contributions are welcome! Please read our contributing guidelines first.
 
 1. Fork the repository
 2. Create a feature branch
