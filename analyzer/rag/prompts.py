@@ -1,7 +1,4 @@
-"""Prompt templates for RAG.
 
-Provides optimized prompt templates for different code analysis tasks.
-"""
 
 # Main code Q&A prompt
 CODE_QA_PROMPT = """You are an expert code analyst. Answer the question based on the provided code context.

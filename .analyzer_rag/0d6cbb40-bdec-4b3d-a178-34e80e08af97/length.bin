@@ -1,0 +1,18 @@
+class HalsteadMetrics:
+    """Halstead complexity metrics."""
+    # Properties: dataclass
+    # Class variables: 4
+    n1: int
+    n2: int
+    N1: int
+    N2: int
+    # Methods (9):
+    def vocabulary(self)
+    def length(self)
+    def calculated_length(self)
+    def volume(self)
+    def difficulty(self)
+    def effort(self)
+    def time_to_program(self)
+    def bugs(self)
+    def to_dict(self)ame

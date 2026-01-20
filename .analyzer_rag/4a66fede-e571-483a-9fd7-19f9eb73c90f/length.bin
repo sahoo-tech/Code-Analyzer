@@ -1,0 +1,12 @@
+class ImportAnalyzer:
+    # Class variables: 1
+    STDLIB_MODULES
+    # Methods (8):
+    def __init__(self, project_root)
+    def stdlib_modules(self)
+    def _get_stdlib_modules(self)
+    def analyze(self, module)
+    def _analyze_import(self, imp, source_file)
+    def _resolve_relative_import(self, imp, source_file)
+    def _resolve_local_import(self, imp)
+    def _is_installed(self, module_name

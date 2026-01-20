@@ -1,8 +1,4 @@
-"""Main RAG pipeline orchestrator.
 
-Coordinates all RAG components: chunking, embedding, indexing,
-retrieval, and LLM-based answer generation.
-"""
 
 from dataclasses import dataclass, field
 from typing import Optional, AsyncIterator
@@ -83,13 +79,7 @@ class IndexStats:
 
 
 class RAGPipeline:
-    """Main RAG pipeline orchestrating all components.
-    
-    Provides:
-    - Indexing: Chunk, embed, and store code modules
-    - Query: Retrieve relevant code and generate answers
-    - Search: Semantic search without LLM generation
-    """
+ 
     
     def __init__(self, config: Optional[RAGConfig] = None):
         self.config = config or get_default_rag_config()
@@ -158,16 +148,7 @@ class RAGPipeline:
         project_path: Optional[str] = None,
         clear_existing: bool = False,
     ) -> IndexStats:
-        """Index code modules for RAG.
-        
-        Args:
-            modules: Parsed code modules to index
-            project_path: Optional project path for context
-            clear_existing: Whether to clear existing index
-            
-        Returns:
-            Index statistics
-        """
+ 
         if clear_existing:
             self.clear_index()
         
@@ -219,16 +200,7 @@ class RAGPipeline:
         prompt_type: str = "qa",
         top_k: Optional[int] = None,
     ) -> RAGResponse:
-        """Query the indexed codebase.
-        
-        Args:
-            question: Natural language question
-            prompt_type: Type of prompt template to use
-            top_k: Number of chunks to retrieve
-            
-        Returns:
-            RAG response with answer and sources
-        """
+
         top_k = top_k or self.config.retrieval.top_k
         
         # Retrieve relevant chunks
@@ -271,16 +243,7 @@ class RAGPipeline:
         prompt_type: str = "qa",
         top_k: Optional[int] = None,
     ) -> AsyncIterator[str]:
-        """Stream query response.
-        
-        Args:
-            question: Natural language question
-            prompt_type: Type of prompt
-            top_k: Number of chunks
-            
-        Yields:
-            Response chunks
-        """
+
         top_k = top_k or self.config.retrieval.top_k
         
         # Retrieve
@@ -309,16 +272,7 @@ class RAGPipeline:
         top_k: Optional[int] = None,
         filter_entity_type: Optional[str] = None,
     ) -> list[RetrievalResult]:
-        """Semantic search without LLM generation.
-        
-        Args:
-            query: Search query
-            top_k: Number of results
-            filter_entity_type: Optional entity type filter
-            
-        Returns:
-            List of retrieval results
-        """
+
         top_k = top_k or self.config.retrieval.top_k
         
         filter_metadata = None
@@ -357,16 +311,7 @@ def create_rag_pipeline(
     llm_provider: str = "openai",
     persist_directory: str = ".analyzer_rag",
 ) -> RAGPipeline:
-    """Create a RAG pipeline with common settings.
-    
-    Args:
-        embedding_provider: Embedding provider to use
-        llm_provider: LLM provider to use
-        persist_directory: Directory for vector store
-        
-    Returns:
-        Configured RAG pipeline
-    """
+
     from analyzer.rag.config import create_rag_config
     
     config = create_rag_config(

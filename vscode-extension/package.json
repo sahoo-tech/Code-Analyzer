@@ -1,0 +1,118 @@
+{
+    "name": "code-analyzer",
+    "displayName": "Python Code Analyzer",
+    "description": "AI-Enhanced Static Analysis for Python - Analyze security, complexity, patterns, and query code with AI",
+    "version": "1.0.0",
+    "publisher": "code-analyzer",
+    "engines": {
+        "vscode": "^1.85.0"
+    },
+    "categories": [
+        "Linters",
+        "Programming Languages",
+        "Other"
+    ],
+    "keywords": [
+        "python",
+        "analyzer",
+        "security",
+        "complexity",
+        "ai",
+        "rag"
+    ],
+    "activationEvents": [
+        "onLanguage:python"
+    ],
+    "main": "./out/extension.js",
+    "contributes": {
+        "commands": [
+            {
+                "command": "codeAnalyzer.analyzeFile",
+                "title": "Analyze File",
+                "category": "Code Analyzer"
+            },
+            {
+                "command": "codeAnalyzer.analyzeDirectory",
+                "title": "Analyze Directory",
+                "category": "Code Analyzer"
+            },
+            {
+                "command": "codeAnalyzer.securityScan",
+                "title": "Security Scan",
+                "category": "Code Analyzer"
+            },
+            {
+                "command": "codeAnalyzer.quickMetrics",
+                "title": "Quick Metrics",
+                "category": "Code Analyzer"
+            },
+            {
+                "command": "codeAnalyzer.ragQuery",
+                "title": "Ask AI About Code",
+                "category": "Code Analyzer"
+            }
+        ],
+        "menus": {
+            "explorer/context": [
+                {
+                    "when": "resourceLangId == python",
+                    "command": "codeAnalyzer.analyzeFile",
+                    "group": "codeAnalyzer@1"
+                },
+                {
+                    "when": "explorerResourceIsFolder",
+                    "command": "codeAnalyzer.analyzeDirectory",
+                    "group": "codeAnalyzer@2"
+                }
+            ],
+            "editor/context": [
+                {
+                    "when": "resourceLangId == python",
+                    "command": "codeAnalyzer.analyzeFile",
+                    "group": "codeAnalyzer@1"
+                },
+                {
+                    "when": "resourceLangId == python",
+                    "command": "codeAnalyzer.quickMetrics",
+                    "group": "codeAnalyzer@2"
+                }
+            ]
+        },
+        "configuration": {
+            "title": "Code Analyzer",
+            "properties": {
+                "codeAnalyzer.pythonPath": {
+                    "type": "string",
+                    "default": "python",
+                    "description": "Path to Python executable"
+                },
+                "codeAnalyzer.showInlineWarnings": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Show inline warnings for code issues"
+                },
+                "codeAnalyzer.autoAnalyzeOnSave": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Automatically analyze files on save"
+                }
+            }
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "lint": "eslint src --ext ts",
+        "package": "vsce package"
+    },
+    "devDependencies": {
+        "@types/node": "^20.10.0",
+        "@types/vscode": "^1.85.0",
+        "@typescript-eslint/eslint-plugin": "^6.13.0",
+        "@typescript-eslint/parser": "^6.13.0",
+        "eslint": "^8.54.0",
+        "typescript": "^5.3.2",
+        "@vscode/vsce": "^2.22.0"
+    }
+}

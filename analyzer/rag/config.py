@@ -1,5 +1,12 @@
 
 
+# Load environment variables FIRST before any other code runs
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 from dataclasses import dataclass, field
 from typing import Optional
 from enum import Enum
@@ -31,7 +38,7 @@ class VectorStoreType(Enum):
 @dataclass
 class EmbeddingConfig:
     """Configuration for embedding generation."""
-    provider: str = "openai"
+    provider: str = "sentence-transformers"  # Use free local embeddings
     model: str = "text-embedding-3-small"
     dimension: int = 1536
     batch_size: int = 100
@@ -73,7 +80,7 @@ class RetrievalConfig:
     # Number of results to retrieve
     top_k: int = 10
     # Minimum similarity threshold (0-1 for cosine)
-    similarity_threshold: float = 0.5
+    similarity_threshold: float = 0.1
     # Use hybrid search (semantic + keyword)
     use_hybrid_search: bool = True
     # Weight for semantic search in hybrid mode (0-1)
@@ -94,7 +101,7 @@ class LLMConfig:
     # For Anthropic
     anthropic_model: str = "claude-3-haiku-20240307"
     # For Google
-    google_model: str = "gemini-1.5-flash"
+    google_model: str = "gemini-2.5-flash"
     # API timeout in seconds
     timeout: int = 60
     # Enable streaming responses

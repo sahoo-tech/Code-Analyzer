@@ -1,8 +1,4 @@
-"""Retrieval system for RAG.
 
-Implements hybrid retrieval combining semantic search with keyword matching,
-plus optional reranking for improved relevance.
-"""
 
 import re
 from dataclasses import dataclass, field
@@ -37,14 +33,7 @@ class RetrievalResult:
 
 
 class Retriever:
-    """Hybrid retriever combining semantic and keyword search.
-    
-    Provides multiple retrieval strategies:
-    - Semantic search using vector embeddings
-    - Keyword search using BM25-like scoring
-    - Hybrid combining both approaches
-    - Optional reranking for improved relevance
-    """
+ 
     
     def __init__(
         self,
@@ -76,18 +65,7 @@ class Retriever:
         top_k: Optional[int] = None,
         filter_metadata: Optional[dict] = None,
     ) -> list[RetrievalResult]:
-        """Retrieve relevant chunks for a query.
-        
-        Uses the configured retrieval strategy (semantic, keyword, or hybrid).
-        
-        Args:
-            query: Query string
-            top_k: Number of results (defaults to config)
-            filter_metadata: Optional metadata filters
-            
-        Returns:
-            List of retrieval results
-        """
+  
         top_k = top_k or self.config.top_k
         
         if self.config.use_hybrid_search:
@@ -101,16 +79,7 @@ class Retriever:
         top_k: int = 10,
         filter_metadata: Optional[dict] = None,
     ) -> list[RetrievalResult]:
-        """Retrieve using semantic similarity only.
-        
-        Args:
-            query: Query string
-            top_k: Number of results
-            filter_metadata: Optional filters
-            
-        Returns:
-            Retrieval results
-        """
+
         # Generate query embedding
         query_embedding = self.embedding_provider.embed_query(query)
         
@@ -139,17 +108,7 @@ class Retriever:
         query: str,
         top_k: int = 10,
     ) -> list[RetrievalResult]:
-        """Retrieve using keyword matching.
-        
-        Uses a simplified BM25-like scoring based on term frequency.
-        
-        Args:
-            query: Query string
-            top_k: Number of results
-            
-        Returns:
-            Retrieval results
-        """
+ 
         if not self._chunks:
             return []
         
@@ -187,18 +146,7 @@ class Retriever:
         top_k: int = 10,
         filter_metadata: Optional[dict] = None,
     ) -> list[RetrievalResult]:
-        """Retrieve using both semantic and keyword search.
-        
-        Combines results using reciprocal rank fusion.
-        
-        Args:
-            query: Query string
-            top_k: Number of results
-            filter_metadata: Optional filters
-            
-        Returns:
-            Combined retrieval results
-        """
+
         # Get results from both methods
         semantic_results = self.semantic_retrieve(
             query, top_k * 2, filter_metadata
@@ -225,10 +173,7 @@ class Retriever:
         keyword_results: list[RetrievalResult],
         semantic_weight: float = 0.7,
     ) -> list[RetrievalResult]:
-        """Combine results using reciprocal rank fusion.
-        
-        RRF score = sum(1 / (k + rank)) for each result list.
-        """
+ 
         k = 60  # RRF constant
         chunk_scores: dict[str, tuple[float, CodeChunk]] = {}
         
@@ -281,13 +226,7 @@ class Retriever:
         results: list[RetrievalResult],
         query: str,
     ) -> list[RetrievalResult]:
-        """Rerank results for improved relevance.
-        
-        Simple heuristic reranking based on:
-        - Exact phrase matches
-        - Query term coverage
-        - Entity type relevance
-        """
+ 
         query_lower = query.lower()
         query_terms = set(self._tokenize(query))
         
@@ -380,15 +319,7 @@ def build_context(
     results: list[RetrievalResult],
     max_length: int = 12000,
 ) -> str:
-    """Build context string from retrieval results.
-    
-    Args:
-        results: Retrieval results
-        max_length: Maximum context length in characters
-        
-    Returns:
-        Formatted context string
-    """
+
     context_parts = []
     current_length = 0
     

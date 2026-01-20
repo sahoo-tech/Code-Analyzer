@@ -1,8 +1,4 @@
-"""Vector store implementations for RAG.
 
-Provides abstraction layer for storing and searching vector embeddings,
-with support for ChromaDB (persistent) and in-memory stores.
-"""
 
 import os
 from abc import ABC, abstractmethod
@@ -57,12 +53,7 @@ class VectorStore(ABC):
         chunks: list[CodeChunk], 
         embeddings: list[list[float]]
     ) -> None:
-        """Add documents with their embeddings to the store.
-        
-        Args:
-            chunks: Code chunks with metadata
-            embeddings: Corresponding embedding vectors
-        """
+   
         pass
     
     @abstractmethod
@@ -72,16 +63,7 @@ class VectorStore(ABC):
         top_k: int = 10,
         filter_metadata: Optional[dict] = None
     ) -> list[SearchResult]:
-        """Search for similar documents.
-        
-        Args:
-            query_embedding: Query vector
-            top_k: Number of results to return
-            filter_metadata: Optional metadata filters
-            
-        Returns:
-            List of search results with scores
-        """
+
         pass
     
     @abstractmethod
@@ -100,26 +82,13 @@ class VectorStore(ABC):
         embedding_fn,
         top_k: int = 10
     ) -> list[SearchResult]:
-        """Search using text query.
-        
-        Args:
-            query: Text query
-            embedding_fn: Function to generate embeddings
-            top_k: Number of results
-            
-        Returns:
-            Search results
-        """
+ 
         query_embedding = embedding_fn(query)
         return self.search(query_embedding, top_k)
 
 
 class ChromaVectorStore(VectorStore):
-    """ChromaDB-based vector store with persistence.
-    
-    Uses ChromaDB for efficient similarity search with optional
-    persistence to disk.
-    """
+
     
     def __init__(self, config: VectorStoreConfig):
         self.config = config
@@ -284,11 +253,7 @@ class ChromaVectorStore(VectorStore):
 
 
 class InMemoryVectorStore(VectorStore):
-    """In-memory vector store for testing.
-    
-    Simple implementation using linear search.
-    Not suitable for large datasets.
-    """
+
     
     def __init__(self, config: VectorStoreConfig):
         self.config = config
@@ -366,17 +331,7 @@ class InMemoryVectorStore(VectorStore):
 
 
 def get_vector_store(config: VectorStoreConfig) -> VectorStore:
-    """Factory function to get vector store based on config.
-    
-    Args:
-        config: Vector store configuration
-        
-    Returns:
-        Configured vector store
-        
-    Raises:
-        ValueError: If backend type is not supported
-    """
+
     backend = config.backend.lower()
     
     if backend == "chromadb":

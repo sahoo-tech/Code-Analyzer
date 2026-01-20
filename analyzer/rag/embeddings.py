@@ -1,9 +1,4 @@
-"""Embedding providers for RAG.
 
-Provides abstraction layer for generating vector embeddings from text,
-with support for multiple backends including OpenAI, sentence-transformers,
-and mock providers for testing.
-"""
 
 import os
 import hashlib
@@ -28,40 +23,18 @@ class EmbeddingProvider(ABC):
     
     @abstractmethod
     def embed_texts(self, texts: list[str]) -> list[list[float]]:
-        """Generate embeddings for a list of texts.
-        
-        Args:
-            texts: List of text strings to embed
-            
-        Returns:
-            List of embedding vectors
-        """
+  
         pass
     
     def embed_query(self, query: str) -> list[float]:
-        """Generate embedding for a single query.
-        
-        Args:
-            query: Query text to embed
-            
-        Returns:
-            Embedding vector
-        """
+    
         embeddings = self.embed_texts([query])
         return embeddings[0]
     
     def embed_batch(
         self, texts: list[str], batch_size: int = 100
     ) -> list[list[float]]:
-        """Generate embeddings in batches.
-        
-        Args:
-            texts: List of texts to embed
-            batch_size: Number of texts per batch
-            
-        Returns:
-            List of embedding vectors
-        """
+   
         all_embeddings = []
         for i in range(0, len(texts), batch_size):
             batch = texts[i:i + batch_size]
@@ -72,11 +45,7 @@ class EmbeddingProvider(ABC):
 
 
 class OpenAIEmbeddings(EmbeddingProvider):
-    """OpenAI embedding provider.
-    
-    Uses OpenAI's text-embedding models for high-quality embeddings.
-    Requires OPENAI_API_KEY environment variable.
-    """
+
     
     DIMENSIONS = {
         "text-embedding-3-small": 1536,
@@ -132,11 +101,7 @@ class OpenAIEmbeddings(EmbeddingProvider):
 
 
 class SentenceTransformerEmbeddings(EmbeddingProvider):
-    """Local embedding provider using sentence-transformers.
-    
-    Uses HuggingFace sentence-transformers for local, free embeddings.
-    Good for offline use and when API costs are a concern.
-    """
+ 
     
     def __init__(self, config: EmbeddingConfig):
         self.config = config
@@ -174,11 +139,7 @@ class SentenceTransformerEmbeddings(EmbeddingProvider):
 
 
 class MockEmbeddings(EmbeddingProvider):
-    """Mock embedding provider for testing.
-    
-    Generates deterministic embeddings based on text hash.
-    Useful for testing without API calls.
-    """
+  
     
     def __init__(self, config: EmbeddingConfig):
         self.config = config
@@ -219,17 +180,7 @@ class MockEmbeddings(EmbeddingProvider):
 
 
 def get_embedding_provider(config: EmbeddingConfig) -> EmbeddingProvider:
-    """Factory function to get embedding provider based on config.
-    
-    Args:
-        config: Embedding configuration
-        
-    Returns:
-        Configured embedding provider
-        
-    Raises:
-        ValueError: If provider type is not supported
-    """
+
     provider_type = config.provider.lower()
     
     if provider_type == "openai":

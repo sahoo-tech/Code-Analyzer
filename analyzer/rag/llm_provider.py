@@ -5,6 +5,13 @@ from abc import ABC, abstractmethod
 from typing import Optional, AsyncIterator
 from dataclasses import dataclass
 
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # python-dotenv not installed
+
 from analyzer.rag.config import LLMConfig
 from analyzer.logging_config import get_logger
 
@@ -195,48 +202,121 @@ class GoogleLLM(LLMProvider):
         return self._client
     
     def generate(self, prompt: str, context: str = "") -> LLMResponse:
+        import time
         client = self._get_client()
         
         full_prompt = prompt
         if context:
             full_prompt = f"Use the following code context to answer the question:\n\n{context}\n\nQuestion: {prompt}"
         
-        response = client.generate_content(
-            full_prompt,
-            generation_config=self._genai.GenerationConfig(
-                temperature=self.config.temperature,
-                max_output_tokens=self.config.max_tokens,
-            )
-        )
-        
-        return LLMResponse(
-            content=response.text,
-            model=self.config.google_model,
-            provider="google",
-            tokens_used=response.usage_metadata.total_token_count if hasattr(response, 'usage_metadata') else None,
-        )
+        # Retry with exponential backoff for rate limits
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = client.generate_content(
+                    full_prompt,
+                    generation_config=self._genai.GenerationConfig(
+                        temperature=self.config.temperature,
+                        max_output_tokens=self.config.max_tokens,
+                    )
+                )
+                
+                return LLMResponse(
+                    content=response.text,
+                    model=self.config.google_model,
+                    provider="google",
+                    tokens_used=response.usage_metadata.total_token_count if hasattr(response, 'usage_metadata') else None,
+                )
+            except Exception as e:
+                error_str = str(e).lower()
+                error_code = str(e)
+                
+                # Check for 404 errors (invalid API key or model not found)
+                if "404" in error_code or "notfound" in error_str or "not found" in error_str:
+                    logger.error(f"Gemini API error: Invalid API key or model not found - {e}")
+                    return LLMResponse(
+                        content=f"⚠️ **Gemini API Error: Invalid API Key**\n\n"
+                                f"Your API key appears to be invalid or revoked.\n\n"
+                                f"**How to fix:**\n"
+                                f"1. Go to https://aistudio.google.com/apikey\n"
+                                f"2. Create a new API key\n"
+                                f"3. Update your .env file with: GEMINI_API_KEY=your_new_key\n"
+                                f"4. Restart the application\n\n"
+                                f"The semantic search feature still works without API.",
+                        model=self.config.google_model,
+                        provider="google",
+                        tokens_used=0,
+                    )
+                
+                # Check for 429 errors (quota/rate limit)
+                elif "429" in error_code or "quota" in error_str or "rate" in error_str or "resource" in error_str:
+                    if attempt < max_retries - 1:
+                        wait_time = (2 ** attempt) * 2  # 2, 4, 8 seconds
+                        logger.warning(f"Rate limit hit, waiting {wait_time}s before retry {attempt + 1}/{max_retries}")
+                        time.sleep(wait_time)
+                        continue
+                    else:
+                        # Return a helpful error message instead of crashing
+                        logger.error(f"Gemini API quota exceeded after {max_retries} retries")
+                        return LLMResponse(
+                            content=f"⚠️ **Gemini API quota exceeded.**\n\n"
+                                    f"Your Google account's daily quota is exhausted.\n\n"
+                                    f"**Options:**\n"
+                                    f"1. Wait until tomorrow (~1:30 PM IST) for quota reset\n"
+                                    f"2. Create a new Google account with fresh quota\n"
+                                    f"3. Enable billing on Google Cloud\n\n"
+                                    f"The semantic search feature still works without API.",
+                            model=self.config.google_model,
+                            provider="google",
+                            tokens_used=0,
+                        )
+                else:
+                    raise
     
     async def generate_stream(
         self, prompt: str, context: str = ""
     ) -> AsyncIterator[str]:
-        client = self._get_client()
-        
-        full_prompt = prompt
-        if context:
-            full_prompt = f"Use the following code context to answer the question:\n\n{context}\n\nQuestion: {prompt}"
-        
-        response = client.generate_content(
-            full_prompt,
-            generation_config=self._genai.GenerationConfig(
-                temperature=self.config.temperature,
-                max_output_tokens=self.config.max_tokens,
-            ),
-            stream=True,
-        )
-        
-        for chunk in response:
-            if chunk.text:
-                yield chunk.text
+        try:
+            client = self._get_client()
+            
+            full_prompt = prompt
+            if context:
+                full_prompt = f"Use the following code context to answer the question:\n\n{context}\n\nQuestion: {prompt}"
+            
+            response = client.generate_content(
+                full_prompt,
+                generation_config=self._genai.GenerationConfig(
+                    temperature=self.config.temperature,
+                    max_output_tokens=self.config.max_tokens,
+                ),
+                stream=True,
+            )
+            
+            for chunk in response:
+                if chunk.text:
+                    yield chunk.text
+        except Exception as e:
+            error_str = str(e).lower()
+            error_code = str(e)
+            
+            if "404" in error_code or "notfound" in error_str or "not found" in error_str:
+                yield f"⚠️ **Gemini API Error: Invalid API Key**\n\n" \
+                      f"Your API key appears to be invalid or revoked.\n\n" \
+                      f"**How to fix:**\n" \
+                      f"1. Go to https://aistudio.google.com/apikey\n" \
+                      f"2. Create a new API key\n" \
+                      f"3. Update your .env file with: GEMINI_API_KEY=your_new_key\n" \
+                      f"4. Restart the application"
+            elif "429" in error_code or "quota" in error_str or "rate" in error_str or "resource" in error_str:
+                yield f"⚠️ **Gemini API quota exceeded.**\n\n" \
+                      f"Your Google account's daily quota is exhausted.\n\n" \
+                      f"**Options:**\n" \
+                      f"1. Wait until tomorrow for quota reset\n" \
+                      f"2. Create a new Google account with fresh quota\n" \
+                      f"3. Enable billing on Google Cloud"
+            else:
+                logger.error(f"Gemini streaming error: {e}")
+                yield f"⚠️ **API Error:** {str(e)}"
 
 
 class MockLLM(LLMProvider):

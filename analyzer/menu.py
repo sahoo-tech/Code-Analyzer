@@ -1,8 +1,14 @@
 
-
 import os
 import sys
 from pathlib import Path
+
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # python-dotenv not installed, skip
 
 # Try to import rich for enhanced output, fallback to basic if not available
 try:
