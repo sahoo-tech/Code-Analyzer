@@ -489,11 +489,21 @@ def rag_menu():
     
     # Check for AI availability
     import os
+    
+    def is_valid_api_key(key):
+        """Check if API key is valid (not empty, placeholder, or whitespace)."""
+        if not key or not key.strip():
+            return False
+        # Check for common placeholder patterns
+        key_lower = key.lower()
+        placeholder_patterns = ["your_", "_here", "placeholder", "api_key_here", "xxx", "your-"]
+        return not any(pattern in key_lower for pattern in placeholder_patterns)
+    
     has_ai = any([
-        os.getenv("GEMINI_API_KEY"),
-        os.getenv("GOOGLE_API_KEY"),
-        os.getenv("OPENAI_API_KEY"),
-        os.getenv("ANTHROPIC_API_KEY"),
+        is_valid_api_key(os.getenv("GEMINI_API_KEY")),
+        is_valid_api_key(os.getenv("GOOGLE_API_KEY")),
+        is_valid_api_key(os.getenv("OPENAI_API_KEY")),
+        is_valid_api_key(os.getenv("ANTHROPIC_API_KEY")),
     ])
     
     if has_ai:
@@ -759,8 +769,19 @@ def rag_stats_menu():
             ("OPENAI_API_KEY", "OpenAI GPT"),
             ("ANTHROPIC_API_KEY", "Anthropic Claude"),
         ]
+        
+        def is_valid_api_key(key):
+            """Check if API key is valid (not empty, placeholder, or whitespace)."""
+            if not key or not key.strip():
+                return False
+            # Check for common placeholder patterns
+            key_lower = key.lower()
+            placeholder_patterns = ["your_", "_here", "placeholder", "api_key_here", "xxx", "your-"]
+            return not any(pattern in key_lower for pattern in placeholder_patterns)
+        
         for env_var, name in providers:
-            status = "✅" if os.getenv(env_var) else "❌"
+            key = os.getenv(env_var)
+            status = "✅" if is_valid_api_key(key) else "❌"
             print(f"  {status} {name} ({env_var})")
         
         print("=" * 40)
